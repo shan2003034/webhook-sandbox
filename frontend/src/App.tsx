@@ -1,121 +1,81 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  
+  const [targetUrl, setTargetUrl] = useState('http://localhost:8080/api/webhook')
+  const [orderId, setOrderId] = useState('ORD-505')
+  const [amount, setAmount] = useState('1500.00')
+  const [status, setStatus] = useState('SUCCESS')
+
+  const sendWebhook = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        
+        body: JSON.stringify({
+          target_url: targetUrl,
+          order_id: orderId,
+          amount: amount,
+          status: status,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`✅ ${data.message} (Status: ${data.status})`);
+      } else {
+        alert('❌ Sending webhook failed! Check if the target server is running.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('❌ Unable to connect to the backend.');
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="container">
+      <h1>🚀 Webhook Sandbox</h1>
+      <div className="card">
+        <h3>Simulate Payment</h3>
+        
+        
+        <div className="input-group">
+          <label>Target Backend URL </label>
+          <input 
+            type="text" 
+            value={targetUrl} 
+            onChange={(e) => setTargetUrl(e.target.value)} 
+            style={{ borderColor: '#007bff' }} 
+          />
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="input-group">
+          <label>Order ID</label>
+          <input type="text" value={orderId} onChange={(e) => setOrderId(e.target.value)} />
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <div className="input-group">
+          <label>Amount (LKR)</label>
+          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        </div>
+
+        <div className="input-group">
+          <label>Payment Status</label>
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="SUCCESS">✅ Success</option>
+            <option value="FAILED">❌ Failed</option>
+            <option value="PENDING">⏳ Pending</option>
+          </select>
+        </div>
+
+        <button onClick={sendWebhook} className="btn-send">Send Webhook</button>
+      </div>
+    </div>
   )
 }
 
