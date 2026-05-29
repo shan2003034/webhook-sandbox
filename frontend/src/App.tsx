@@ -25,6 +25,19 @@ function App() {
     localStorage.setItem('webhook-history', JSON.stringify(history));
   }, [history]);
 
+  
+  const shutdownServer = async () => {
+    if (window.confirm("Are you sure you want to shut down the server?")) {
+      try {
+        await fetch('http://localhost:3000/api/shutdown', { method: 'POST' });
+        alert("Server has been shut down. You can close this tab now.");
+        window.close(); 
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
   const sendWebhook = async () => {
     setIsSending(true);
     let isSuccess = false;
@@ -68,8 +81,32 @@ function App() {
   return (
     <div className="app-container">
       <div className="glass-panel main-panel">
-        <h1 className="title">🚀 Webhook Sandbox</h1>
-        <p className="subtitle">Modern Local Testing Environment</p>
+        
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 className="title">🚀 Webhook Sandbox</h1>
+            <p className="subtitle">Modern Local Testing Environment</p>
+          </div>
+          <button 
+            onClick={shutdownServer} 
+            style={{ 
+              background: '#ff3b30', 
+              color: 'white', 
+              border: 'none', 
+              padding: '10px 16px', 
+              borderRadius: '8px', 
+              cursor: 'pointer', 
+              fontWeight: 'bold',
+              boxShadow: '0 4px 10px rgba(255, 59, 48, 0.3)',
+              transition: 'transform 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            🛑 Stop Server
+          </button>
+        </div>
         
         <div className="form-container">
           <div className="floating-input-group">
@@ -117,15 +154,12 @@ function App() {
             <p className="no-history">No webhooks sent yet.</p>
           ) : (
             history.map((item) => (
-              
               <div key={item.id} className={`history-item history-item-${item.status.toLowerCase()}`}>
                 <div className="history-icon">
-                  
                   {item.status === 'SUCCESS' ? '✅' : item.status === 'FAILED' ? '❌' : '⏳'}
                 </div>
                 <div className="history-details">
                   <span className="history-order">{item.orderId}</span>
-                  
                   <span className={`history-status status-text-${item.status.toLowerCase()}`}>{item.status}</span>
                 </div>
                 <div className="history-time">{item.time}</div>
