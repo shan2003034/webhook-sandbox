@@ -17,19 +17,11 @@ import (
 //go:embed frontend/dist/*
 var frontendFiles embed.FS
 
-type WebhookPayload struct {
-	TargetURL string `json:"target_url"`
-	OrderID   string `json:"order_id"`
-	Amount    string `json:"amount"`
-	Status    string `json:"status"`
-}
-
 func enableCORS(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
-
 
 func openBrowser(url string) {
 	var err error
@@ -49,21 +41,31 @@ func openBrowser(url string) {
 }
 
 func main() {
-	
 	http.HandleFunc("/api/send", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(&w)
 		if r.Method == "OPTIONS" {
 			return
 		}
 
-		var payload WebhookPayload
+		
+		var payload map[string]interface{}
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
 			http.Error(w, "Invalid JSON data", http.StatusBadRequest)
 			return
 		}
 
-		targetURL := payload.TargetURL
+		
+		targetURL, ok := payload["target_url"].(string)
+		if !ok || targetURL == "" {
+			http.Error(w, "Target URL is missing", http.StatusBadRequest)
+			return
+		}
+
+		
+		delete(payload, "target_url")
+
+		
 		jsonData, _ := json.Marshal(payload)
 		resp, err := http.Post(targetURL, "application/json", bytes.NewBuffer(jsonData))
 		
@@ -77,7 +79,6 @@ func main() {
 		fmt.Fprintf(w, `{"message": "Webhook sent successfully!", "status": %d}`, resp.StatusCode)
 	})
 
-	
 	http.HandleFunc("/api/shutdown", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(&w)
 		if r.Method == "OPTIONS" {
@@ -87,14 +88,12 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(w, `{"message": "Server is shutting down..."}`)
 		
-		
 		go func() {
 			time.Sleep(1 * time.Second)
 			os.Exit(0)
 		}()
 	})
 
-	
 	distFS, err := fs.Sub(frontendFiles, "frontend/dist")
 	if err != nil {
 		log.Fatal(err)
@@ -103,8 +102,7 @@ func main() {
 
 	port := ":3000"
 	fmt.Printf("🚀 Webhook Sandbox is running!\n")
-	fmt.Printf("👉 Server started on http://localhost%s\n", port)
-	
+	fmt.Printf("👉 Server started on http://localhost%sn", port)
 	
 	go func() {
 		time.Sleep(1 * time.Second)

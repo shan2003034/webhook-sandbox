@@ -14,6 +14,11 @@ function App() {
   const [orderId, setOrderId] = useState('ORD-505');
   const [amount, setAmount] = useState('1500.00');
   const [status, setStatus] = useState('SUCCESS');
+  
+ 
+  const [customJson, setCustomJson] = useState('{\n  "currency": "LKR",\n  "payment_method": "CARD"\n}');
+  const [jsonError, setJsonError] = useState('');
+  
   const [isSending, setIsSending] = useState(false);
   
   const [history, setHistory] = useState<HistoryItem[]>(() => {
@@ -25,13 +30,12 @@ function App() {
     localStorage.setItem('webhook-history', JSON.stringify(history));
   }, [history]);
 
-  
   const shutdownServer = async () => {
     if (window.confirm("Are you sure you want to shut down the server?")) {
       try {
         await fetch('http://localhost:3000/api/shutdown', { method: 'POST' });
         alert("Server has been shut down. You can close this tab now.");
-        window.close(); 
+        window.close();
       } catch (e) {
         console.error(e);
       }
@@ -39,19 +43,36 @@ function App() {
   }
 
   const sendWebhook = async () => {
+    setJsonError('');
+    let parsedCustomData = {};
+    
+    
+    if (customJson.trim() !== '') {
+      try {
+        parsedCustomData = JSON.parse(customJson);
+      } catch (e) {
+        setJsonError('❌ Invalid JSON format. Please check your custom parameters.');
+        return; 
+      }
+    }
+
     setIsSending(true);
     let isSuccess = false;
 
     try {
+      
+      const payload = {
+        target_url: targetUrl,
+        order_id: orderId,
+        amount: amount,
+        status: status,
+        ...parsedCustomData 
+      };
+
       const response = await fetch('http://localhost:3000/api/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          target_url: targetUrl,
-          order_id: orderId,
-          amount: amount,
-          status: status,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -82,7 +103,6 @@ function App() {
     <div className="app-container">
       <div className="glass-panel main-panel">
         
-        
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 className="title">🚀 Webhook Sandbox</h1>
@@ -91,15 +111,9 @@ function App() {
           <button 
             onClick={shutdownServer} 
             style={{ 
-              background: '#ff3b30', 
-              color: 'white', 
-              border: 'none', 
-              padding: '10px 16px', 
-              borderRadius: '8px', 
-              cursor: 'pointer', 
-              fontWeight: 'bold',
-              boxShadow: '0 4px 10px rgba(255, 59, 48, 0.3)',
-              transition: 'transform 0.2s'
+              background: '#ff3b30', color: 'white', border: 'none', padding: '10px 16px', 
+              borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+              boxShadow: '0 4px 10px rgba(255, 59, 48, 0.3)', transition: 'transform 0.2s'
             }}
             onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -114,14 +128,15 @@ function App() {
             <label>Target Backend URL</label>
           </div>
 
-          <div className="floating-input-group">
-            <input type="text" placeholder=" " value={orderId} onChange={(e) => setOrderId(e.target.value)} />
-            <label>Order ID</label>
-          </div>
-
-          <div className="floating-input-group">
-            <input type="number" placeholder=" " value={amount} onChange={(e) => setAmount(e.target.value)} />
-            <label>Amount (LKR)</label>
+          <div style={{ display: 'flex', gap: '15px' }}>
+            <div className="floating-input-group" style={{ flex: 1 }}>
+              <input type="text" placeholder=" " value={orderId} onChange={(e) => setOrderId(e.target.value)} />
+              <label>Order ID</label>
+            </div>
+            <div className="floating-input-group" style={{ flex: 1 }}>
+              <input type="number" placeholder=" " value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <label>Amount</label>
+            </div>
           </div>
 
           <div className="input-group">
@@ -133,10 +148,28 @@ function App() {
             </select>
           </div>
 
+          {/* අලුත් Raw JSON Text Area එක */}
+          <div className="input-group" style={{ marginTop: '10px' }}>
+            <label className="static-label">Custom Parameters (Raw JSON)</label>
+            <textarea 
+              value={customJson}
+              onChange={(e) => setCustomJson(e.target.value)}
+              placeholder='{"currency": "LKR", "discount": 100}'
+              style={{
+                width: '100%', minHeight: '100px', padding: '12px', borderRadius: '8px',
+                border: jsonError ? '2px solid #ff3b30' : '1px solid rgba(255,255,255,0.3)',
+                background: 'rgba(255,255,255,0.5)', color: '#333', fontFamily: 'monospace',
+                fontSize: '14px', resize: 'vertical', outline: 'none', boxSizing: 'border-box'
+              }}
+            />
+            {jsonError && <p style={{ color: '#ff3b30', fontSize: '13px', margin: '5px 0 0 0', fontWeight: 'bold' }}>{jsonError}</p>}
+          </div>
+
           <button 
             className={`btn-send ${isSending ? 'sending' : ''}`} 
             onClick={sendWebhook}
             disabled={isSending}
+            style={{ marginTop: '15px' }}
           >
             {isSending ? 'Sending...' : 'Send Webhook'}
           </button>
