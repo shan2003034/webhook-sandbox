@@ -72,7 +72,7 @@ go build -a -o webhook-sandbox.exe main.go
 Execute the generated webhook-sandbox.exe file to start the sandbox environment.
 
 👨‍💻 Author
-Shan Gajanayake
+Prasanna Lakshan
 
 🌐 Portfolio: https://prasanna-lakshan.vercel.app/
 
