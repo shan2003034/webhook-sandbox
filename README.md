@@ -40,6 +40,28 @@ Welcome to the **Webhook Sandbox** repository. This is a powerful, standalone lo
 * **Styling:** Custom CSS (Glassmorphism & Modern Animations)
 * **Packaging Tooling:** `go:embed` (File bundling), `go-winres` (Executable icon embedding)
 
+  ## ⚙️ How It Works (Sequence Flow)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User (React UI)
+    participant S as Sandbox Engine (Go :3000)
+    participant T as Target API (Your Backend)
+
+    U->>S: POST /api/send (Order, Amount, Custom JSON)
+    activate S
+    Note over S: Parses Payload & Extracts Target URL
+    S->>T: POST Application/JSON (Webhook Data)
+    activate T
+    Note over T: Your Backend processes the mock payment
+    T-->>S: HTTP Status (e.g., 200 OK / 500 Error)
+    deactivate T
+    S-->>U: Return Success/Fail State
+    deactivate S
+    U->>U: Update Dashboard History
+```
+
 ## 🛠️ Installation & Setup
 
 You can run the Webhook Sandbox either by downloading the pre-compiled executable or by building it from the source.
