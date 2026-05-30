@@ -12,7 +12,7 @@ Welcome to the **Webhook Sandbox** repository. This is a powerful, standalone lo
   <table>
     <tr>
       <td align="center">
-        <img width="1920" height="912" alt="Image" src="https://github.com/user-attachments/assets/211bf79b-9ae1-4a3d-817c-adfb18f21f27" />
+        <img width="1920" height="912" alt="Image" src="https://github.com/user-attachments/assets/f54b72af-3356-4dca-8b57-00772540cc92" />
         <br><b>Modern Glassmorphism Dashboard</b>
       </td>
       <td align="center">
